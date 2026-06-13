@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>YAML to JSON</title>
+<style>
+  :root{
+    --bg: #f5f6f8;
+    --panel: #ffffff;
+    --text: #1c2230;
+    --muted: #5c6577;
+    --border: #d7dbe3;
+    --accent: #2f6df0;
+    --accent-text: #ffffff;
+    --error-bg: #fdecec;
+    --error-text: #9b1c1c;
+    --code-bg: #fbfbfd;
+    --shadow: 0 1px 3px rgba(20,25,40,0.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg: #14171d;
+      --panel: #1d212a;
+      --text: #e6e9ef;
+      --muted: #9aa3b2;
+      --border: #303641;
+      --accent: #5b8cff;
+      --accent-text: #0b1020;
+      --error-bg: #3a1f22;
+      --error-text: #ffb3b3;
+      --code-bg: #161a21;
+      --shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+  }
+  *{ box-sizing: border-box; }
+  html,body{ height: 100%; }
+  body{
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.45;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  header{
+    padding: 18px 22px 10px;
+  }
+  header h1{
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 650;
+  }
+  header p{
+    margin: 4px 0 0;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .controls{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 22px 14px;
+  }
+  .toggle{
+    display: inline-flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--panel);
+  }
+  .toggle button{
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    padding: 8px 14px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .toggle button.active{
+    background: var(--accent);
+    color: var(--accent-text);
+    font-weight: 600;
+  }
+  .btn{
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font: inherit;
+    cursor: pointer;
+  }
+  .btn:hover{ border-color: var(--accent); }
+  main{
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 0 22px 18px;
+    min-height: 0;
+  }
+  @media (max-width: 760px){
+    main{ grid-template-columns: 1fr; }
+  }
+  .pane{
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    min-height: 320px;
+    overflow: hidden;
+  }
+  .pane-head{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .pane-head .label{
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .copy-btn{
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .copy-btn:hover{ color: var(--text); border-color: var(--accent); }
+  textarea{
+    flex: 1;
+    width: 100%;
+    border: 0;
+    resize: none;
+    padding: 12px 14px;
+    background: var(--code-bg);
+    color: var(--text);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: 13.5px;
+    line-height: 1.5;
+    tab-size: 2;
+    outline: none;
+  }
+  textarea:focus{ box-shadow: inset 0 0 0 2px var(--accent); }
+  .error{
+    margin: 0 22px 16px;
+    padding: 10px 14px;
+    background: var(--error-bg);
+    color: var(--error-text);
+    border-radius: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    display: none;
+  }
+  .error.show{ display: block; }
+  footer{
+    padding: 10px 22px 18px;
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>YAML to JSON</h1>
+  <p>Convert between YAML and JSON live, entirely in your browser. Nothing is uploaded.</p>
+</header>
+
+<div class="controls">
+  <div class="toggle" id="toggle">
+    <button data-dir="yaml2json" class="active">YAML to JSON</button>
+    <button data-dir="json2yaml">JSON to YAML</button>
+  </div>
+  <button class="btn" id="swap">Swap sides</button>
+  <button class="btn" id="sample">Load sample</button>
+  <button class="btn" id="clear">Clear</button>
+</div>
+
+<main>
+  <section class="pane">
+    <div class="pane-head">
+      <span class="label" id="inLabel">YAML input</span>
+      <button class="copy-btn" data-target="input">Copy</button>
+    </div>
+    <textarea id="input" spellcheck="false" placeholder="Type or paste here..."></textarea>
+  </section>
+  <section class="pane">
+    <div class="pane-head">
+      <span class="label" id="outLabel">JSON output</span>
+      <button class="copy-btn" data-target="output">Copy</button>
+    </div>
+    <textarea id="output" spellcheck="false" readonly placeholder="Result appears here..."></textarea>
+  </section>
+</main>
+
+<div class="error" id="error"></div>
+
+<footer>
+  Runs offline. No network calls, no tracking. Implements a YAML subset (mappings, sequences,
+  scalars, nesting, comments, flow collections, block scalars).
+</footer>
+
+<script>
+"use strict";
+
+/* ---------- YAML parsing (a practical subset) ---------- */
+
+function stripComment(line){
+  let inS = false, inD = false;
+  for (let i = 0; i < line.length; i++){
+    const ch = line[i];
+    if (inS){ if (ch === "'") inS = false; continue; }
+    if (inD){ if (ch === '"' && line[i-1] !== '\\') inD = false; continue; }
+    if (ch === "'"){ inS = true; continue; }
+    if (ch === '"'){ inD = true; continue; }
+    if (ch === '#' && (i === 0 || line[i-1] === ' ' || line[i-1] === '\t')){
+      return line.slice(0, i);
+    }
+  }
+  return line;
+}
+
+function tokenize(text){
+  const out = [];
+  for (const rawLine of text.split(/\r?\n/)){
+    const line = stripComment(rawLine);
+    if (line.trim() === '') continue;
+    const t = line.trim();
+    if (t === '---' || t === '...') continue;
+    const lead = line.match(/^[ \t]*/)[0];
+    out.push({ indent: lead.length, content: line.slice(lead.length).replace(/\s+$/, '') });
+  }
+  return out;
+}
+
+function unquote(k){
+  if (k.length >= 2 && k[0] === '"' && k[k.length-1] === '"'){
+    try { return JSON.parse(k); } catch (e) { return k.slice(1, -1); }
+  }
+  if (k.length >= 2 && k[0] === "'" && k[k.length-1] === "'"){
+    return k.slice(1, -1).replace(/''/g, "'");
+  }
+  return k;
+}
+
+function splitKeyVal(s){
+  let inS = false, inD = false, depth = 0;
+  for (let i = 0; i < s.length; i++){
+    const ch = s[i];
+    if (inS){ if (ch === "'") inS = false; continue; }
+    if (inD){ if (ch === '"' && s[i-1] !== '\\') inD = false; continue; }
+    if (ch === "'"){ inS = true; continue; }
+    if (ch === '"'){ inD = true; continue; }
+    if (ch === '[' || ch === '{') depth++;
+    else if (ch === ']' || ch === '}') depth--;
+    else if (ch === ':' && depth === 0 && (i + 1 >= s.length || s[i+1] === ' ')){
+      return { key: unquote(s.slice(0, i).trim()), val: s.slice(i + 1).trim() };
+    }
+  }
+  return null;
+}
+
+function isSeqItem(content){
+  return content === '-' || content.startsWith('- ');
+}
+
+function isBlockIndicator(s){
+  return /^[|>][+-]?$/.test(s.trim());
+}
+
+function parseScalar(raw){
+  const s = raw.trim();
+  if (s === '') return null;
+  const c = s[0];
+  if (c === '[' || c === '{') return parseFlow(s);
+  if (c === '"'){
+    try { return JSON.parse(s); } catch (e) { return s; }
+  }
+  if (c === "'"){
+    if (s.length >= 2 && s[s.length-1] === "'") return s.slice(1, -1).replace(/''/g, "'");
+    return s;
+  }
+  const low = s.toLowerCase();
+  if (low === 'null' || s === '~') return null;
+  if (low === 'true') return true;
+  if (low === 'false') return false;
+  if (/^[-+]?\d+$/.test(s)){
+    if (/^[-+]?0\d+/.test(s)) return s; // keep leading-zero strings (zip codes etc.)
+    return parseInt(s, 10);
+  }
+  if (/[.eE]/.test(s) && /^[-+]?(\d+\.\d*|\.\d+|\d+)([eE][-+]?\d+)?$/.test(s)){
+    const f = Number(s);
+    if (!isNaN(f)) return f;
+  }
+  return s;
+}
+
+function parseFlow(str){
+  let pos = 0;
+  const n = str.length;
+  function skip(){ while (pos < n && (str[pos] === ' ' || str[pos] === '\t')) pos++; }
+  function dq(){
+    pos++;
+    let out = '"';
+    while (pos < n){
+      const ch = str[pos];
+      if (ch === '\\'){ out += ch + (str[pos+1] || ''); pos += 2; continue; }
+      if (ch === '"'){ out += '"'; pos++; break; }
+      out += ch; pos++;
+    }
+    try { return JSON.parse(out); } catch (e) { return out.slice(1).replace(/"$/, ''); }
+  }
+  function sq(){
+    pos++;
+    let out = '';
+    while (pos < n){
+      const ch = str[pos];
+      if (ch === "'"){
+        if (str[pos+1] === "'"){ out += "'"; pos += 2; continue; }
+        pos++; break;
+      }
+      out += ch; pos++;
+    }
+    return out;
+  }
+  function value(){
+    skip();
+    const ch = str[pos];
+    if (ch === '[') return arr();
+    if (ch === '{') return obj();
+    if (ch === '"') return dq();
+    if (ch === "'") return sq();
+    const start = pos;
+    while (pos < n && ',]}'.indexOf(str[pos]) === -1) pos++;
+    return parseScalar(str.slice(start, pos));
+  }
+  function arr(){
+    pos++;
+    const a = [];
+    skip();
+    if (str[pos] === ']'){ pos++; return a; }
+    while (pos < n){
+      a.push(value());
+      skip();
+      if (str[pos] === ','){ pos++; skip(); continue; }
+      if (str[pos] === ']'){ pos++; break; }
+      break;
+    }
+    return a;
+  }
+  function obj(){
+    pos++;
+    const o = {};
+    skip();
+    if (str[pos] === '}'){ pos++; return o; }
+    while (pos < n){
+      skip();
+      let k;
+      const ch = str[pos];
+      if (ch === '"') k = dq();
+      else if (ch === "'") k = sq();
+      else {
+        const start = pos;
+        while (pos < n && str[pos] !== ':' && str[pos] !== ',' && str[pos] !== '}') pos++;
+        k = String(parseScalar(str.slice(start, pos)));
+      }
+      skip();
+      if (str[pos] === ':'){ pos++; o[k] = value(); }
+      else o[k] = null;
+      skip();
+      if (str[pos] === ','){ pos++; continue; }
+      if (str[pos] === '}'){ pos++; break; }
+      break;
+    }
+    return o;
+  }
+  return value();
+}
+
+function collectBlock(state, parentIndent, indicator){
+  const lines = state.lines;
+  const folded = indicator.trim()[0] === '>';
+  const chomp = indicator.indexOf('-') !== -1 ? 'strip'
+              : indicator.indexOf('+') !== -1 ? 'keep' : 'clip';
+  const collected = [];
+  let blockIndent = null;
+  while (state.i < lines.length && lines[state.i].indent > parentIndent){
+    const ln = lines[state.i];
+    if (blockIndent === null) blockIndent = ln.indent;
+    const extra = ln.indent - blockIndent;
+    collected.push(' '.repeat(Math.max(0, extra)) + ln.content);
+    state.i++;
+  }
+  let text = folded ? collected.join(' ') : collected.join('\n');
+  if (chomp === 'keep') text += '\n';
+  else if (chomp === 'clip' && collected.length) text += '\n';
+  return text;
+}
+
+function parseBlock(state, indent){
+  const line = state.lines[state.i];
+  if (isSeqItem(line.content)) return parseSeq(state, indent);
+  if (splitKeyVal(line.content)) return parseMap(state, indent);
+  state.i++;
+  return parseScalar(line.content);
+}
+
+function parseMap(state, indent){
+  const lines = state.lines;
+  const obj = {};
+  while (state.i < lines.length){
+    const line = lines[state.i];
+    if (line.indent !== indent) break;
+    if (isSeqItem(line.content)) break;
+    const kv = splitKeyVal(line.content);
+    if (!kv) break;
+    const key = kv.key, val = kv.val;
+    if (val === ''){
+      state.i++;
+      if (state.i < lines.length){
+        const next = lines[state.i];
+        if (next.indent > indent || (isSeqItem(next.content) && next.indent === indent)){
+          obj[key] = parseBlock(state, next.indent);
+        } else {
+          obj[key] = null;
+        }
+      } else {
+        obj[key] = null;
+      }
+    } else if (isBlockIndicator(val)){
+      state.i++;
+      obj[key] = collectBlock(state, indent, val);
+    } else {
+      obj[key] = parseScalar(val);
+      state.i++;
+    }
+  }
+  return obj;
+}
+
+function parseSeq(state, indent){
+  const lines = state.lines;
+  const arr = [];
+  while (state.i < lines.length){
+    const line = lines[state.i];
+    if (line.indent !== indent || !isSeqItem(line.content)) break;
+    const rest = line.content.length > 1 ? line.content.slice(1).replace(/^\s+/, '') : '';
+    const childIndent = indent + 2;
+    if (rest === ''){
+      state.i++;
+      if (state.i < lines.length && lines[state.i].indent > indent){
+        arr.push(parseBlock(state, lines[state.i].indent));
+      } else {
+        arr.push(null);
+      }
+    } else if (isBlockIndicator(rest)){
+      state.i++;
+      arr.push(collectBlock(state, indent, rest));
+    } else if (splitKeyVal(rest)){
+      lines[state.i] = { indent: childIndent, content: rest };
+      arr.push(parseBlock(state, childIndent));
+    } else {
+      arr.push(parseScalar(rest));
+      state.i++;
+    }
+  }
+  return arr;
+}
+
+function parseYaml(text){
+  const lines = tokenize(text);
+  if (lines.length === 0) return null;
+  const state = { i: 0, lines: lines };
+  const result = parseBlock(state, lines[0].indent);
+  if (state.i < lines.length){
+    throw new Error('Could not parse line ' + (state.i + 1) + ': "' + lines[state.i].content + '". Check indentation.');
+  }
+  return result;
+}
+
+/* ---------- JSON to YAML ---------- */
+
+function pad(n){ return '  '.repeat(n); }
+function isScalarV(v){ return v === null || typeof v !== 'object'; }
+
+function isPlainSafe(s){
+  if (s === '') return false;
+  if (!/^[A-Za-z0-9_][A-Za-z0-9 _.\/+-]*$/.test(s)) return false;
+  if (/ $/.test(s)) return false;
+  const low = s.toLowerCase();
+  if (['true','false','null','yes','no','on','off','~'].indexOf(low) !== -1) return false;
+  if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(s)) return false;
+  return true;
+}
+
+function scalarStr(v){
+  if (v === null) return 'null';
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  if (typeof v === 'number') return Number.isFinite(v) ? String(v) : 'null';
+  const s = String(v);
+  return isPlainSafe(s) ? s : JSON.stringify(s);
+}
+
+function emit(value, indent, lines){
+  if (Array.isArray(value)){
+    if (value.length === 0){ lines.push(pad(indent) + '[]'); return; }
+    for (const item of value) seqItem(item, indent, lines);
+  } else if (value !== null && typeof value === 'object'){
+    const keys = Object.keys(value);
+    if (keys.length === 0){ lines.push(pad(indent) + '{}'); return; }
+    for (const k of keys) mapEntry(k, value[k], indent, lines);
+  } else {
+    lines.push(pad(indent) + scalarStr(value));
+  }
+}
+
+function mapEntry(k, v, indent, lines){
+  const key = scalarStr(String(k));
+  if (isScalarV(v)){ lines.push(pad(indent) + key + ': ' + scalarStr(v)); return; }
+  if (Array.isArray(v)){
+    if (v.length === 0){ lines.push(pad(indent) + key + ': []'); return; }
+    lines.push(pad(indent) + key + ':');
+    emit(v, indent + 1, lines);
+    return;
+  }
+  if (Object.keys(v).length === 0){ lines.push(pad(indent) + key + ': {}'); return; }
+  lines.push(pad(indent) + key + ':');
+  emit(v, indent + 1, lines);
+}
+
+function seqItem(item, indent, lines){
+  if (isScalarV(item)){ lines.push(pad(indent) + '- ' + scalarStr(item)); return; }
+  if (Array.isArray(item)){
+    if (item.length === 0){ lines.push(pad(indent) + '- []'); return; }
+    lines.push(pad(indent) + '-');
+    emit(item, indent + 1, lines);
+    return;
+  }
+  if (Object.keys(item).length === 0){ lines.push(pad(indent) + '- {}'); return; }
+  const tmp = [];
+  emit(item, indent + 1, tmp);
+  tmp[0] = pad(indent) + '- ' + tmp[0].slice(pad(indent + 1).length);
+  for (const l of tmp) lines.push(l);
+}
+
+function toYaml(value){
+  if (value === undefined) return '';
+  const lines = [];
+  emit(value, 0, lines);
+  return lines.join('\n');
+}
+
+/* ---------- UI wiring ---------- */
+
+const inputEl = document.getElementById('input');
+const outputEl = document.getElementById('output');
+const errorEl = document.getElementById('error');
+const inLabel = document.getElementById('inLabel');
+const outLabel = document.getElementById('outLabel');
+const toggle = document.getElementById('toggle');
+
+let direction = 'yaml2json';
+
+const SAMPLES = {
+  yaml2json: [
+    '# Sample YAML',
+    'name: yaml-to-json',
+    'version: 1.0',
+    'offline: true',
+    'tags:',
+    '  - converter',
+    '  - browser',
+    '  - vanilla-js',
+    'author:',
+    '  handle: 0xelitesystem',
+    '  active: true',
+    'limits: { max: 100, min: 0 }',
+    'note: "Runs fully in your browser, no network calls."'
+  ].join('\n'),
+  json2yaml: JSON.stringify({
+    name: 'yaml-to-json',
+    version: 1.0,
+    offline: true,
+    tags: ['converter', 'browser', 'vanilla-js'],
+    author: { handle: '0xelitesystem', active: true },
+    limits: { max: 100, min: 0 },
+    note: 'Runs fully in your browser, no network calls.'
+  }, null, 2)
+};
+
+function setError(msg){
+  if (msg){
+    errorEl.textContent = msg;
+    errorEl.classList.add('show');
+  } else {
+    errorEl.textContent = '';
+    errorEl.classList.remove('show');
+  }
+}
+
+function convert(){
+  const text = inputEl.value;
+  if (text.trim() === ''){
+    outputEl.value = '';
+    setError(null);
+    return;
+  }
+  try {
+    let out;
+    if (direction === 'yaml2json'){
+      out = JSON.stringify(parseYaml(text), null, 2);
+    } else {
+      out = toYaml(JSON.parse(text));
+    }
+    outputEl.value = out;
+    setError(null);
+  } catch (e){
+    outputEl.value = '';
+    setError((direction === 'yaml2json' ? 'YAML error: ' : 'JSON error: ') + e.message);
+  }
+}
+
+function applyDirection(){
+  const buttons = toggle.querySelectorAll('button');
+  buttons.forEach(function(b){
+    b.classList.toggle('active', b.dataset.dir === direction);
+  });
+  if (direction === 'yaml2json'){
+    inLabel.textContent = 'YAML input';
+    outLabel.textContent = 'JSON output';
+  } else {
+    inLabel.textContent = 'JSON input';
+    outLabel.textContent = 'YAML output';
+  }
+  convert();
+}
+
+toggle.addEventListener('click', function(e){
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  direction = btn.dataset.dir;
+  applyDirection();
+});
+
+document.getElementById('swap').addEventListener('click', function(){
+  const carry = outputEl.value;
+  direction = direction === 'yaml2json' ? 'json2yaml' : 'yaml2json';
+  if (carry.trim() !== '') inputEl.value = carry;
+  applyDirection();
+});
+
+document.getElementById('sample').addEventListener('click', function(){
+  inputEl.value = SAMPLES[direction];
+  convert();
+});
+
+document.getElementById('clear').addEventListener('click', function(){
+  inputEl.value = '';
+  outputEl.value = '';
+  setError(null);
+  inputEl.focus();
+});
+
+function copyText(text, btn){
+  function flash(){
+    const old = btn.textContent;
+    btn.textContent = 'Copied';
+    setTimeout(function(){ btn.textContent = old; }, 1200);
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(flash, function(){ fallback(text); flash(); });
+  } else {
+    fallback(text);
+    flash();
+  }
+}
+
+function fallback(text){
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+document.querySelectorAll('.copy-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    const el = btn.dataset.target === 'input' ? inputEl : outputEl;
+    if (el.value !== '') copyText(el.value, btn);
+  });
+});
+
+inputEl.addEventListener('input', convert);
+
+inputEl.value = SAMPLES.yaml2json;
+applyDirection();
+</script>
+</body>
+</html>

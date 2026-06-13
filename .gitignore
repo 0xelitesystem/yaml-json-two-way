@@ -1,0 +1,12 @@
+# OS and editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Logs
+*.log
+
+# Dependency and build folders (not used by this project, kept for safety)
+node_modules/
+dist/
