@@ -30,4 +30,4 @@ Part of a catalog of single-file browser tools and plain-language references, al
 
 ## License
 
-MIT. See the [LICENSE](LICENSE) file. Copyright (c) 2026 0xelitesystem.
+MIT. See the [LICENSE](LICENSE) file. Copyright (c) 2026 RBL Industries LLC.
