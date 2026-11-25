@@ -1,12 +1,12 @@
-# YAML to JSON
+# YAML JSON Two Way
 
 A single file, offline, browser based converter that turns YAML into JSON and JSON back into YAML, live as you type.
 
-**Live demo:** https://0xelitesystem.github.io/yaml-to-json/
+**Live demo:** https://0xelitesystem.github.io/yaml-json-two-way/
 
 ## Use
 
-Paste or type into the left pane and the converted result appears in the right pane instantly. Use the toggle to pick the direction (YAML to JSON or JSON to YAML). Each pane has a copy button. If the input is invalid, a clear error message replaces the output until you fix it.
+Paste or type into the left pane and the converted result appears in the right pane instantly. Use the toggle to pick the direction (YAML JSON Two Way or JSON to YAML). Each pane has a copy button. If the input is invalid, a clear error message replaces the output until you fix it.
 
 ## Why this exists
 

@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>YAML to JSON - convert YAML to JSON and back, in your browser</title>
-<meta name="description" content="Convert YAML to JSON and back, in your browser. No server, no upload, no tracking.">
-<meta property="og:title" content="YAML to JSON">
-<meta property="og:description" content="Convert YAML to JSON and back, in your browser. No server, no upload, no tracking.">
-<meta property="og:url" content="https://0xelitesystem.github.io/yaml-to-json/">
+<title>YAML JSON Two Way - convert YAML JSON Two Way and back, in your browser</title>
+<meta name="description" content="Convert YAML JSON Two Way and back, in your browser. No server, no upload, no tracking.">
+<meta property="og:title" content="YAML JSON Two Way">
+<meta property="og:description" content="Convert YAML JSON Two Way and back, in your browser. No server, no upload, no tracking.">
+<meta property="og:url" content="https://0xelitesystem.github.io/yaml-json-two-way/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
 <style>
@@ -181,8 +181,8 @@
     font-size: 0.82rem;
   }
 </style>
-<link rel="canonical" href="https://0xelitesystem.github.io/yaml-to-json/">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"YAML to JSON","applicationCategory":"DeveloperApplication","operatingSystem":"Any (browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://0xelitesystem.github.io/yaml-to-json/","author":{"@type":"Person","name":"0xelitesystem","url":"https://elitesystem.ai"}}</script>
+<link rel="canonical" href="https://0xelitesystem.github.io/yaml-json-two-way/">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"YAML JSON Two Way","applicationCategory":"DeveloperApplication","operatingSystem":"Any (browser)","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"url":"https://0xelitesystem.github.io/yaml-json-two-way/","author":{"@type":"Person","name":"0xelitesystem","url":"https://elitesystem.ai"}}</script>
 <style>
 /* elitesystem brand tokens: chrome only, meaning preserved */
 :root, :root[data-theme="dark"] {
@@ -211,13 +211,13 @@
 </head>
 <body>
 <header>
-  <h1>YAML to JSON</h1>
+  <h1>YAML JSON Two Way</h1>
   <p>Convert between YAML and JSON live, entirely in your browser. Nothing is uploaded.</p>
 </header>
 
 <div class="controls">
   <div class="toggle" id="toggle">
-    <button data-dir="yaml2json" class="active">YAML to JSON</button>
+    <button data-dir="yaml2json" class="active">YAML JSON Two Way</button>
     <button data-dir="json2yaml">JSON to YAML</button>
   </div>
   <button class="btn" id="swap">Swap sides</button>
@@ -247,7 +247,7 @@
 <footer>
   Runs offline. No network calls, no tracking. Implements a YAML subset (mappings, sequences,
   scalars, nesting, comments, flow collections, block scalars).
- <br>An <a href="https://elitesystem.ai" target="_blank" rel="noopener">elitesystem.ai</a> tool. <a href="https://github.com/0xelitesystem/yaml-to-json" target="_blank" rel="noopener">Source on GitHub</a>. <a href="https://0xelitesystem.github.io/" target="_blank" rel="noopener">More tools</a>. </footer>
+ <br>An <a href="https://elitesystem.ai" target="_blank" rel="noopener">elitesystem.ai</a> tool. <a href="https://github.com/0xelitesystem/yaml-json-two-way" target="_blank" rel="noopener">Source on GitHub</a>. <a href="https://0xelitesystem.github.io/" target="_blank" rel="noopener">More tools</a>. </footer>
 
 <script>
 "use strict";
@@ -613,7 +613,7 @@ let direction = 'yaml2json';
 const SAMPLES = {
   yaml2json: [
     '# Sample YAML',
-    'name: yaml-to-json',
+    'name: yaml-json-two-way',
     'version: 1.0',
     'offline: true',
     'tags:',
@@ -627,7 +627,7 @@ const SAMPLES = {
     'note: "Runs fully in your browser, no network calls."'
   ].join('\n'),
   json2yaml: JSON.stringify({
-    name: 'yaml-to-json',
+    name: 'yaml-json-two-way',
     version: 1.0,
     offline: true,
     tags: ['converter', 'browser', 'vanilla-js'],
